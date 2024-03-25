@@ -2,7 +2,7 @@
 
 Set-Alias Base64Decode ./HelperScripts/Base64Decode.ps1
 Set-Alias KindLoad ./HelperScripts/KindLoad.ps1
-Set-Alias RunWithTimeout ./HelperScripts/RunScriptBlockWithTimeout.ps1
+Set-Alias PodmanPull ./HelperScripts/PodmanPull.ps1
 
 function DeployAndWait()
 {
@@ -37,10 +37,10 @@ function DeployAndWait()
         Write-Host "  Press [X] to delete ArgoCD instance" 
         do
         {
-            $PortforwardOutput = $(Receive-Job -Job $PortForwardJob)
-            if($PortforwardOutput.Length -gt 0) 
+            if($PortForwardJob.State -eq "Completed") 
             {
-                Write-Host $PortForwardOutput -ForegroundColor DarkGray
+                Write-Host "Portforward error" -ForegroundColor Red
+                break
             }
             $key = [Console]::ReadKey("noecho");
         }
@@ -52,16 +52,14 @@ function DeployAndWait()
 }
 
 # Normal way 
-DeployAndWait -ManifestPath "https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
+# DeployAndWait -ManifestPath "https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
 
 # Workaround
-# $imagesToPull = $(Get-Content .\argocd-install.yaml | findstr "image:" | Select-Object -Unique) -Replace '(image:)|(\s+)', ''
-# foreach($img in $imagesToPull)
-# {
-#     Write-Output "pulling $img"
-#     podman pull --tls-verify=$False $img
-#     Write-Output "loading $img into kind"
-#     KindLoad $img
-# }
+$imagesToPull = $(Get-Content .\argocd-install.yaml | findstr "image:" | Select-Object -Unique) -Replace '(image:)|(\s+)', ''
+foreach($img in $imagesToPull)
+{
+    PodmanPull $img    
+    KindLoad $img
+}
 
-# DeployAndWait -ManifestPath .\argocd-install.yaml
+DeployAndWait -ManifestPath .\argocd-install.yaml

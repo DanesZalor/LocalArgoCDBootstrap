@@ -17,8 +17,8 @@ $ExistingInKind = $(ConvertFrom-Json "$(podman exec -it kind-control-plane crict
 if($ExistingInKind)
 {
     Write-Host -NoNewline "$ImageName"
-    Write-Host " found in kind. Deleting..." -ForegroundColor Red
-    podman exec -it kind-control-plane crictl rmi $ImageName
+    Write-Host " already exists in KinD" -ForegroundColor Cyan
+    return
 }
 
 $env:KIND_EXPERIMENTAL_PROVIDER="podman"

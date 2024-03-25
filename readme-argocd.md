@@ -45,3 +45,6 @@
     ```
     or login via WebUI by going to https://localhost:31415 with the same credentials
     
+## Deployment
+
+argocd is only for **deploying**. Building and pushing images is someone else's responsibility.
